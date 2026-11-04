@@ -1,241 +1,76 @@
-# YouTube Music Widget
+<p align="center">
+  <img src="docs/images/logo-animated.svg" width="120" alt="Logo Rondo">
+</p>
 
-**Une application desktop pour écouter de la musique depuis YouTube, construite avec React, Vite et Electron.**
+<h1 align="center">Rondo</h1>
 
-**Pourquoi réinventer la roue ?**
-Parce qu'on peut la rendre **plus ronde, plus rapide, et plus adaptée à nos besoins**.
+<p align="center">
+  <strong>Votre musique YouTube, dans un coin de l'écran.</strong><br>
+  Un lecteur léger, toujours visible, qui se réduit en petite carte. Gratuit, local, sans compte.
+</p>
 
----
+<p align="center">
+  <img src="docs/images/apercu.gif" width="360" alt="Aperçu de Rondo : ajout d'une playlist, lecture, recherche dans la file, mode mini">
+</p>
 
-## 📌 Description
+## Pourquoi Rondo
 
-Cette application permet de :
+- **Toujours là, jamais gênant.** Une fenêtre sans bordure qui reste au premier plan, ou une carte de
+  340 × 84 pixels qui se glisse dans un coin pendant que vous travaillez.
+- **Une playlist entière en un collage.** Copiez, faites `Ctrl+V` : tout est ajouté. Plusieurs liens d'un coup,
+  une playlist complète, ou un simple glisser-déposer.
+- **Rien à créer, rien à configurer.** Pas de compte, pas de serveur, aucune donnée collectée. Votre file reste sur
+  votre ordinateur et se retrouve au prochain lancement.
+- **Retrouver un titre parmi des centaines.** La recherche instantanée filtre la file pendant que vous tapez.
+- **Piloté au clavier.** Les touches multimédia fonctionnent même quand Rondo n'a pas le focus.
 
-- Lire des musiques directement depuis YouTube avec des contrôles avancés
-- Fonctionner en local, sans besoin d'un navigateur
-- Profiter d'une interface moderne et intuitive
+## Aperçu
 
-**Technologies utilisées** :
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/complet.png" width="300" alt="Mode complet"><br><sub>Mode complet</sub></td>
+    <td align="center"><img src="docs/images/file.png" width="300" alt="File d'attente"><br><sub>File d'attente</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="docs/images/mini.png" width="340" alt="Mode mini"><br><sub>Mode mini</sub></td>
+  </tr>
+</table>
 
-- Frontend : React 19, Vite 7, TailwindCSS 4
-- Desktop : Electron 39
-- Lecture : YouTube iframe embed
-- Sécurité : Context isolation activé, preload script sécurisé
+## Démarrer
 
----
+Prérequis : [Node.js](https://nodejs.org) 20 ou plus récent. Testé sous Windows.
 
-## 🎯 Pourquoi utiliser Music Widget ?
-
-| **Avantage**             | **Description**                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------- |
-| **Sans distraction**     | Pas de publicités, pas de suggestions intrusives, pas de commentaires toxiques. |
-| **Personnalisable**      | Contrôles de lecture intégrés, gestion du volume, barre de progression.         |
-| **Local et privé**       | Tes données restent sur ton appareil, avec sécurité renforcée.                  |
-| **Open-source**          | Le code est ouvert aux contributions.                                           |
-| **Multi-tâche optimisé** | Lecture en arrière-plan, interface desktop native.                              |
-
----
-
-## 🚀 Fonctionnalités Actuelles
-
-- **Lecture de vidéos YouTube** : Intégration via iframe embed natif
-- **Interface fluide** : UI moderne avec TailwindCSS, animations et transitions
-- **Gestion des erreurs** : Messages clairs et feedback visuel
-- **Sécurité renforcée** : Context isolation, preload script, web security activée
-- **Support multi-formats** : Accepte les URLs YouTube et les IDs de vidéos
-
----
-
-## 🔜 Prochaines Étapes
-
-| **Fonctionnalité**           | **Description**                                                                                      |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **Playlists intelligentes**  | Création de playlists basées sur tes habitudes, moods, ou projets.                                   |
-| **Mode "Focus"**             | Désactive les notifications et lance une playlist "concentration".                                   |
-| **Intégration multi-outils** | Synchronisation avec Trello, Notion, ou ton IDE.                                                      |
-| **Analyse de mood**          | Propose des vidéos/musiques en fonction de ton activité.                                              |
-| **Thèmes personnalisables**  | Choisis parmi plusieurs thèmes ou crée le tien.                                                       |
-
----
-
-## � Prérequis
-
-- Node.js (v18 ou supérieur)
-- npm ou yarn
-- Git
-
----
-
-## 🚀 Installation
-
-### Pour les Utilisateurs
-
-1. **Télécharger la dernière version** :
-   ```bash
-   git clone https://github.com/HexaNexus28/music-widget.git
-   cd music-widget
-   ```
-
-2. **Installer les dépendances** :
-   ```bash
-   npm install
-   ```
-
-3. **Lancer l'application** :
-   ```bash
-   npm start
-   ```
-
-### Pour les Développeurs
-
-1. **Cloner et installer** :
-   ```bash
-   git clone https://github.com/HexaNexus28/music-widget.git
-   cd music-widget
-   npm install
-   ```
-
-2. **Mode développement** :
-   ```bash
-   npm run dev
-   ```
-   - Lance Vite serveur (port automatique)
-   - Lance Electron avec outils de développement
-
-3. **Build pour production** :
-   ```bash
-   npm run build
-   ```
-   - Crée le dossier `dist/`
-   - Génère l'exécutable avec electron-builder
-
----
-
-## 📁 Structure du Projet
-
-```
-my-widget-app/
-├── src/
-│   ├── components/
-│   │   └── YoutubePlayer.jsx    # Composant principal du lecteur
-│   ├── assets/                   # Icônes et ressources
-│   ├── App.jsx                   # Composant racine
-│   └── main.jsx                  # Point d'entrée React
-├── main.js                       # Processus principal Electron
-├── preload.js                    # Script sécurisé preload
-├── vite.config.js                # Configuration Vite
-├── package.json                  # Dépendances et scripts
-└── README.md                     # Ce fichier
-```
-
----
-
-## 🔧 Configuration
-
-### Variables d'Environnement
-
-Créez un fichier `.env` à la racine :
-
-```env
-NODE_ENV=development
-```
-
-### Configuration Electron
-
-- **Sécurité** : `contextIsolation: true`, `nodeIntegration: false`
-- **Preload script** : `preload.js` pour les communications sécurisées
-- **Permissions** : Autoplay, fullscreen, accelerometer, gyroscope
-
----
-
-## � Dépannage
-
-### Problèmes Communs
-
-**L'application ne se lance pas** :
 ```bash
-# Vérifier les dépendances
+git clone https://github.com/HexaNexus28/music-widget.git
+cd music-widget
 npm install
-
-# Nettoyer et réinstaller
-rm -rf node_modules package-lock.json
-npm install
+npm start
 ```
 
-**Port déjà utilisé** :
-- L'application utilise automatiquement le premier port disponible (5173+)
-- Pas besoin de configuration manuelle
+Copiez un lien YouTube, faites `Ctrl+V` dans la fenêtre, puis lancez la lecture.
 
-**La vidéo ne se lit pas** :
-- Vérifiez la connexion internet
-- Assurez-vous que l'URL YouTube est valide
-- Certains pays ont des restrictions sur certaines vidéos
+| Commande | Effet |
+|---|---|
+| `npm run dev` | Développement avec rechargement à chaud |
+| `npm start` | Build puis lancement de la version de production |
+| `npm run build` | Build et installeur Windows (dossier `release/`) |
+| `npm run lint` | Vérification ESLint |
 
-### Logs et Debug
+## Documentation
 
-En mode développement, les outils de développement Electron s'ouvrent automatiquement.
+- [Guide d'utilisation](docs/guide-utilisation.md) : les fonctions pas à pas, la confidentialité et les questions
+  fréquentes.
+- [Architecture technique](docs/architecture.md) : fonctionnement interne, pour contribuer.
 
----
+## Contribuer
 
-## 🤝 Contribuer
+Les issues et les pull requests sont les bienvenues. Avant de proposer une modification, lancez `npm run lint` et
+`npm run build`.
 
-1. **Fork** le projet
-2. **Créer une branche** : `git checkout -b feature/nouvelle-fonctionnalite`
-3. **Commiter** : `git commit -am 'Ajout nouvelle fonctionnalité'`
-4. **Pusher** : `git push origin feature/nouvelle-fonctionnalite`
-5. **Pull Request** : Soumettre une PR
+## Licence et mentions
 
-### Guidelines de Contribution
+Code sous licence [MIT](LICENSE).
 
-- Code style : ESLint configuré
-- Components : Utiliser les hooks React
-- Sécurité : Maintenir contextIsolation activé
-- Tests : Ajouter des tests pour nouvelles fonctionnalités
-
----
-
-## 📄 Licence
-
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour les détails.
-
----
-
-## 🔗 Liens Utiles
-
-- **Voir le code ou contribuer** : [GitHub Repository](https://github.com/HexaNexus28/music-widget)
-- **Signaler un bug** : [Issues GitHub](https://github.com/HexaNexus28/music-widget/issues)
-- **Découvrir d'autres projets** : [Portfolio](https://hexanexus.github.io)
-
----
-
-## 📊 Performance
-
-- **Démarrage** : < 3 secondes
-- **Mémoire** : ~100MB en fonctionnement
-- **CPU** : Minimal en lecture
-- **Support** : Windows 10+, macOS 10.14+, Linux
-
----
-
-## 🎨 Personnalisation
-
-### Thèmes
-
-Le thème par défaut utilise la palette purple/indigo. Pour personnaliser :
-
-1. Modifier les classes Tailwind dans `src/components/YoutubePlayer.jsx`
-2. Ajouter des variables CSS personnalisées
-3. Rebuild avec `npm run build`
-
-### Raccourcis Clavier
-
-Prochainement disponible :
-- `Space` : Play/Pause
-- `↑/↓` : Volume
-- `←/→` : Navigation
-
----
-
-**Merci d'utiliser Music Widget ! 🎵**
-
-Pour toute question ou suggestion, n'hésitez pas à ouvrir une issue sur GitHub.
+Rondo utilise le lecteur intégré de YouTube. Il n'est ni affilié à YouTube ou Google, ni approuvé par eux ;
+YouTube est une marque de Google LLC. Les vidéos de démonstration des images sont des films ouverts de la
+[Blender Foundation](https://www.blender.org) (licence CC BY 3.0).

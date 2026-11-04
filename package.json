@@ -1,29 +1,37 @@
 {
-  "name": "my-widget-app",
+  "name": "rondo",
   "main": "main.js",
   "type": "module",
   "version": "1.0.0",
-  "description": "A desktop application with a widget using Electron and React",
+  "description": "A lightweight YouTube music widget for the desktop",
   "author": "HexaNexus",
+  "license": "MIT",
   "scripts": {
-    "dev": "vite dev & electron .",
+    "dev": "node scripts/dev.js",
     "build": "vite build && electron-builder",
-    "start": "electron ."
+    "start": "vite build && electron .",
+    "lint": "eslint ."
   },
   "build": {
-    "appId": "com.hexanexus.mywidgetapp",
-    "productName": "Music-Widget App",
+    "appId": "com.hexanexus.rondo",
+    "productName": "Rondo",
     "files": [
       "dist/**/*",
-      "main.js"
+      "main.js",
+      "preload.cjs"
     ],
     "win": {
       "target": "nsis",
       "icon": "src/assets/icons/my-icon.ico"
+    },
+    "directories": {
+      "output": "release"
     }
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
+    "lucide-react": "^1.68.0",
+    "motion": "^14.9.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
