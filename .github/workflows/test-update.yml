@@ -1,0 +1,41 @@
+name: Test update
+
+on:
+  push:
+    branches: ["test/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - name: Build the new code under two version numbers
+        run: |
+          npx vite build
+          npx electron-builder --win --publish never "-c.extraMetadata.version=1.1.2" "-c.directories.output=out112"
+          npx electron-builder --win --publish never "-c.extraMetadata.version=1.1.0" "-c.directories.output=out110"
+
+      - name: Download the published installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.1.0 -p "Rondo-Setup-*.exe" -D old
+          gh release download v1.1.1 -p "Rondo-Setup-*.exe" -D old
+
+      - name: Install and update
+        shell: pwsh
+        run: ./.github/scripts/test-update.ps1
