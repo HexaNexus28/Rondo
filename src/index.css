@@ -2,6 +2,9 @@
 
 html, body, #root { height: 100%; margin: 0; overflow: hidden; }
 
+/* The default scrollbar is white: zinc-500 on the dark window instead. */
+* { scrollbar-width: thin; scrollbar-color: #71717a transparent; }
+
 /*
  * Accent color: the UI is written with Tailwind's violet scale, so an accent is just
  * those five steps redefined. Violet (the default) needs no override.
