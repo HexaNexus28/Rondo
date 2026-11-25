@@ -18,7 +18,9 @@
     "files": [
       "dist/**/*",
       "main.js",
-      "preload.cjs"
+      "preload.cjs",
+      "electron/**/*",
+      "src/assets/icons/my-icon.ico"
     ],
     "win": {
       "target": "nsis",

@@ -71,6 +71,7 @@ export function useYouTubePlayer({ onEnded, onError, initialVolume }) {
     if (p.getPlayerState() === STATE.PLAYING) p.pauseVideo();
     else p.playVideo();
   }, []);
+  const pause = useCallback(() => playerRef.current?.pauseVideo(), []);
   const seek = useCallback((seconds) => {
     playerRef.current?.seekTo(seconds, true);
     setTime((t) => ({ ...t, current: seconds }));
@@ -78,5 +79,5 @@ export function useYouTubePlayer({ onEnded, onError, initialVolume }) {
   const stop = useCallback(() => playerRef.current?.stopVideo(), []);
   const setVolume = useCallback((v) => playerRef.current?.setVolume(v), []);
 
-  return { mountRef, ready, playing, time, load, cue, toggle, seek, stop, setVolume };
+  return { mountRef, ready, playing, time, load, cue, toggle, pause, seek, stop, setVolume };
 }

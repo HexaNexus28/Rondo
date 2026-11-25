@@ -1,3 +1,33 @@
 @import "tailwindcss";
 
 html, body, #root { height: 100%; margin: 0; overflow: hidden; }
+
+/*
+ * Accent color: the UI is written with Tailwind's violet scale, so an accent is just
+ * those five steps redefined. Violet (the default) needs no override.
+ */
+html[data-accent="blue"] {
+  --color-violet-200: oklch(88.2% 0.059 254.128); --color-violet-300: oklch(80.9% 0.105 251.813);
+  --color-violet-400: oklch(70.7% 0.165 254.624); --color-violet-500: oklch(62.3% 0.214 259.815);
+  --color-violet-600: oklch(54.6% 0.245 262.881);
+}
+html[data-accent="cyan"] {
+  --color-violet-200: oklch(91.7% 0.08 205.041); --color-violet-300: oklch(86.5% 0.127 207.078);
+  --color-violet-400: oklch(78.9% 0.154 211.53); --color-violet-500: oklch(71.5% 0.143 215.221);
+  --color-violet-600: oklch(60.9% 0.126 221.723);
+}
+html[data-accent="emerald"] {
+  --color-violet-200: oklch(90.5% 0.093 164.15); --color-violet-300: oklch(84.5% 0.143 164.978);
+  --color-violet-400: oklch(76.5% 0.177 163.223); --color-violet-500: oklch(69.6% 0.17 162.48);
+  --color-violet-600: oklch(59.6% 0.145 163.225);
+}
+html[data-accent="amber"] {
+  --color-violet-200: oklch(92.4% 0.12 95.746); --color-violet-300: oklch(87.9% 0.169 91.605);
+  --color-violet-400: oklch(82.8% 0.189 84.429); --color-violet-500: oklch(76.9% 0.188 70.08);
+  --color-violet-600: oklch(66.6% 0.179 58.318);
+}
+html[data-accent="rose"] {
+  --color-violet-200: oklch(89.2% 0.058 10.001); --color-violet-300: oklch(81% 0.117 11.638);
+  --color-violet-400: oklch(71.2% 0.194 13.428); --color-violet-500: oklch(64.5% 0.246 16.439);
+  --color-violet-600: oklch(58.6% 0.253 17.585);
+}

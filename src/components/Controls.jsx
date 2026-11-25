@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { SkipBack, SkipForward, ListMusic, Volume2, VolumeX, Plus } from "lucide-react";
+import { SkipBack, SkipForward, ListMusic, Volume2, VolumeX, Plus, Shuffle, Repeat, Repeat1, Moon } from "lucide-react";
 import PlayButton from "./PlayButton";
 import { formatTime } from "../utils/youtube";
 
 const STATUS_TONE = { ok: "text-emerald-400", info: "text-zinc-400", error: "text-red-400" };
 const icon = "grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent";
+const small = "flex h-7 min-w-7 shrink-0 items-center justify-center gap-0.5 rounded-full px-1 transition-colors hover:bg-white/10";
+const REPEAT_LABEL = { off: "Répétition : désactivée", all: "Répétition : toute la file", one: "Répétition : cette piste" };
 
 export default function Controls({
   player, title, status, volume, onVolume,
   canPrev, canNext, onPrev, onNext,
+  shuffle, repeat, onShuffle, onRepeat, sleepMinutesLeft, onSleep,
   queueOpen, queueCount, onToggleQueue, onAdd, disabled,
 }) {
   const [input, setInput] = useState("");
@@ -23,9 +26,26 @@ export default function Controls({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-between gap-2 px-3 pb-3 pt-2">
-      <p className="truncate text-sm font-medium" title={title}>
-        {title ?? "Aucune piste"}
-      </p>
+      <div className="flex items-center gap-1">
+        <p className="min-w-0 flex-1 truncate text-sm font-medium" title={title}>
+          {title ?? "Aucune piste"}
+        </p>
+        <button
+          className={`${small} ${sleepMinutesLeft ? "text-violet-400" : "text-zinc-500"}`}
+          onClick={onSleep}
+          title={sleepMinutesLeft ? `Pause dans ${sleepMinutesLeft} min` : "Minuteur de sommeil"}
+          aria-label={sleepMinutesLeft ? `Pause dans ${sleepMinutesLeft} minutes` : "Minuteur de sommeil"}
+        >
+          <Moon size={15} />
+          {sleepMinutesLeft && <span className="text-[10px] tabular-nums">{sleepMinutesLeft}m</span>}
+        </button>
+        <button className={`${small} ${shuffle ? "text-violet-400" : "text-zinc-500"}`} onClick={onShuffle} aria-pressed={shuffle} title="Lecture aléatoire">
+          <Shuffle size={15} />
+        </button>
+        <button className={`${small} ${repeat !== "off" ? "text-violet-400" : "text-zinc-500"}`} onClick={onRepeat} title={REPEAT_LABEL[repeat]} aria-label={REPEAT_LABEL[repeat]}>
+          {repeat === "one" ? <Repeat1 size={15} /> : <Repeat size={15} />}
+        </button>
+      </div>
 
       <div className="flex items-center gap-2 text-[10px] tabular-nums text-zinc-400">
         <span className="w-8 text-right">{formatTime(current)}</span>

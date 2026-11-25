@@ -6,10 +6,11 @@ export function usePersistedState(key, initial) {
   const [value, setValue] = useState(() => {
     try {
       const raw = localStorage.getItem(PREFIX + key);
-      return raw === null ? initial : JSON.parse(raw);
+      if (raw !== null) return JSON.parse(raw);
     } catch {
-      return initial;
+      // unreadable value: fall through to the default
     }
+    return typeof initial === "function" ? initial() : initial;
   });
 
   useEffect(() => {
