@@ -2,7 +2,7 @@
   "name": "rondo",
   "main": "main.js",
   "type": "module",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A lightweight YouTube music widget for the desktop",
   "author": "HexaNexus",
   "license": "MIT",
