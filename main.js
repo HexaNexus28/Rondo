@@ -5,6 +5,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 import { fileURLToPath } from 'url';
+import { initUpdater } from './electron/updater.js';
 import { DEFAULT_SHORTCUTS, flushSettings, getSettings, loadSettings, updateSettings } from './electron/settings.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -287,6 +288,7 @@ if (!app.requestSingleInstanceLock()) {
         registerShortcuts();
         createWindow();
         createTray();
+        initUpdater();
     });
 
     app.on('before-quit', () => (quitting = true));
