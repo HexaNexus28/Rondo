@@ -27,6 +27,7 @@ Pile : Electron 39, React 19, Vite 7, Tailwind CSS 4, `lucide-react` (icônes), 
 | Modes | Table `MODES` : `full` (360 × 470, minimum 300 × 420, redimensionnable), `miniVideo` (360 × 290, fixe) et `mini` (340 × 84, fixe) |
 | Chargement | En développement, l'URL fournie par `VITE_DEV_SERVER_URL`. En production, un serveur HTTP local sert `dist/` |
 | Touches multimédia | `globalShortcut` pour `MediaPlayPause`, `MediaNextTrack`, `MediaPreviousTrack` |
+| Mises à jour (`electron/updater.js`) | Téléchargement en arrière-plan ; installation à l'ouverture si rien n'est audible (`isCurrentlyAudible`), une seule tentative automatique par version, sinon à la fermeture ou depuis le menu |
 | Instance unique | `requestSingleInstanceLock` ; une seconde instance ramène la fenêtre existante au premier plan |
 
 ### Pourquoi un serveur local en production

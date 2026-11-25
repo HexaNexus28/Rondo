@@ -5,7 +5,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 import { fileURLToPath } from 'url';
-import { initUpdater } from './electron/updater.js';
+import { initUpdater, installOnOpen, installUpdate, readyVersion } from './electron/updater.js';
 import { DEFAULT_SHORTCUTS, flushSettings, getSettings, loadSettings, updateSettings } from './electron/settings.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -192,7 +192,7 @@ function setGhost(on) {
 }
 
 function showWindow() {
-    if (!mainWindow) return;
+    if (!mainWindow || installOnOpen()) return;
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.show();
     mainWindow.focus();
@@ -207,6 +207,7 @@ function createTray() {
 
 function refreshTray() {
     if (!tray || !mainWindow) return;
+    const update = readyVersion();
     tray.setContextMenu(Menu.buildFromTemplate([
         { label: 'Lecture / Pause', click: () => runAction('toggle') },
         { label: 'Suivant', click: () => runAction('next') },
@@ -215,6 +216,7 @@ function refreshTray() {
         { label: mainWindow.isVisible() ? 'Masquer' : 'Afficher', click: () => (mainWindow.isVisible() ? mainWindow.hide() : showWindow()) },
         { label: 'Mode fantôme', type: 'checkbox', checked: ghost, click: () => setGhost(!ghost) },
         { type: 'separator' },
+        ...(update ? [{ label: `Redémarrer pour installer la ${update}`, click: installUpdate }] : []),
         { label: 'Quitter', click: () => app.quit() },
     ]));
 }
@@ -302,7 +304,7 @@ if (!app.requestSingleInstanceLock()) {
         registerShortcuts();
         createWindow();
         createTray();
-        initUpdater();
+        initUpdater({ playing: () => Boolean(mainWindow?.webContents.isCurrentlyAudible()), onReady: refreshTray });
     });
 
     app.on('before-quit', () => (quitting = true));

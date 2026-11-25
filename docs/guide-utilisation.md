@@ -149,6 +149,12 @@ Rondo place une icône dans la zone de notification de Windows. Un clic la masqu
 un menu : lecture/pause, suivant, précédent, afficher/masquer, mode fantôme et **Quitter**. Pour fermer vraiment
 l'application, utilisez ce menu : la croix de la fenêtre ne fait que la masquer.
 
+### Mises à jour
+
+Rondo télécharge seul les nouvelles versions. La mise à jour s'installe quand vous ouvrez ou réaffichez Rondo, si
+rien n'est en lecture, ou quand vous quittez. Pour ne pas attendre : cliquez sur la notification, ou choisissez
+**Redémarrer pour installer** dans le menu. Vos listes sont conservées.
+
 ## Raccourcis clavier
 
 Ces raccourcis sont globaux : ils fonctionnent même si Rondo n'a pas le focus.
