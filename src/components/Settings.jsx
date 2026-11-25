@@ -135,6 +135,13 @@ export default function Settings({ accent, onAccent, onClose }) {
               ))}
             </ul>
           </div>
+
+          <div className={section}>
+            <h3 className={heading}>À propos</h3>
+            <p className="flex items-center justify-between text-xs text-zinc-300">
+              Version <span className="tabular-nums text-zinc-200">{settings.version}</span>
+            </p>
+          </div>
         </>
       )}
     </motion.div>

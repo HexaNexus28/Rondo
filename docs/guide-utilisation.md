@@ -142,6 +142,7 @@ L'engrenage de la barre du haut ouvre les réglages :
   raccourci (`Ctrl+Alt+G` par défaut) ou le menu de l'icône de notification.
 - **Aimantation** aux bords de l'écran.
 - **Raccourcis** : voir ci-dessous.
+- **À propos** : la version installée de Rondo, tout en bas du panneau.
 
 ## Zone de notification
 

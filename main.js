@@ -256,7 +256,7 @@ function setShortcut(action, accelerator) {
 const readSettings = () => {
     const { ghostOpacity, snap, shortcuts } = getSettings();
     const unavailable = Object.keys(shortcuts).filter((action) => bound[action] !== shortcuts[action]);
-    return { ghostOpacity, snap, shortcuts, unavailable, ghost };
+    return { ghostOpacity, snap, shortcuts, unavailable, ghost, version: app.getVersion() };
 };
 
 function registerIpc() {
