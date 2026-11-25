@@ -115,7 +115,14 @@ message s'affiche quelques secondes, la piste est marquée dans la file et l'app
 
 ## Mode mini
 
-Le mode mini réduit la fenêtre à une carte de 340 × 84 pixels :
+Le mode mini existe en deux formats, et Rondo retient le dernier utilisé :
+
+- **Vidéo** (360 × 290 pixels) : la vidéo reste visible, avec les commandes dessous.
+- **Compact** (340 × 84 pixels) : une simple barre avec une vignette.
+
+Le petit bouton à gauche de « Agrandir » passe de l'un à l'autre. La carte reste collée au bord où elle se trouve.
+
+Le format compact contient :
 
 - vignette de la vidéo à gauche ;
 - titre, boutons « Agrandir » et « Fermer » en haut à droite ;

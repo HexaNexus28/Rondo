@@ -45,6 +45,7 @@ function App() {
   const setIndex = useCallback((u) => patchList(activeId, "index", u), [patchList, activeId]);
   const [volume, setVolume] = usePersistedState("volume", DEFAULT_VOLUME);
   const [mode, setMode] = usePersistedState("mode", "full");
+  const [miniFormat, setMiniFormat] = usePersistedState("miniFormat", "miniVideo");
   const [accent, setAccent] = usePersistedState("accent", "violet");
   const [showQueue, setShowQueue] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -56,7 +57,8 @@ function App() {
   const playedInCycle = useRef(new Set());
   const shuffleHistory = useRef([]);
 
-  const mini = mode === "mini";
+  const mini = mode !== "full";
+  const compact = mode === "mini";
   const current = queue[index];
   // Tracks YouTube refused to play are skipped everywhere (see onError below).
   const anyPlayable = queue.some((t) => !t.unplayable);
@@ -290,11 +292,17 @@ function App() {
     player.setVolume(v);
   };
 
+  const toggleMiniFormat = () => {
+    const next = compact ? "miniVideo" : "mini";
+    setMiniFormat(next);
+    setMode(next);
+  };
+
   // The video box stays mounted across modes so playback never restarts.
   return (
     <div
       style={mini ? DRAG : undefined}
-      className={`relative flex h-screen bg-[#0f0f14] text-zinc-100 select-none ${mini ? "items-center gap-3 p-3" : "flex-col"}`}
+      className={`relative flex h-screen bg-[#0f0f14] text-zinc-100 select-none ${compact ? "items-center gap-3 p-3" : "flex-col"}`}
     >
       {dragging && (
         <div className="pointer-events-none absolute inset-2 z-10 grid place-items-center rounded-xl border-2 border-dashed border-violet-400 bg-violet-500/20 text-sm font-medium text-violet-200">
@@ -303,7 +311,7 @@ function App() {
       )}
       {!mini && (
         <TitleBar
-          onMini={() => setMode("mini")}
+          onMini={() => setMode(miniFormat)}
           settingsOpen={showSettings}
           onSettings={() => {
             setShowQueue(false);
@@ -312,7 +320,7 @@ function App() {
         />
       )}
 
-      <div className={`relative shrink-0 overflow-hidden bg-black ${mini ? "aspect-video h-[60px] rounded" : "aspect-video w-full"}`}>
+      <div className={`relative shrink-0 overflow-hidden bg-black ${compact ? "aspect-video h-[60px] rounded" : "aspect-video w-full"}`}>
         <div ref={player.mountRef} className="absolute inset-0 pointer-events-none [&>iframe]:h-full [&>iframe]:w-full" />
         {!current && !mini && (
           <p className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
@@ -353,6 +361,8 @@ function App() {
           canNext={canNext}
           onPrev={prev}
           onNext={() => next()}
+          compact={compact}
+          onToggleFormat={toggleMiniFormat}
           onExpand={() => setMode("full")}
         />
       ) : (

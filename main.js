@@ -19,6 +19,8 @@ const MIME = {
 };
 const MODES = {
     full: { width: 360, height: 470, minWidth: 300, minHeight: 420, resizable: true },
+    // Video card: 360 px wide keeps the 16:9 player above YouTube's 200 px minimum height.
+    miniVideo: { width: 360, height: 290, minWidth: 0, minHeight: 0, resizable: false },
     mini: { width: 340, height: 84, minWidth: 0, minHeight: 0, resizable: false },
 };
 const MEDIA_KEYS = {
@@ -138,6 +140,18 @@ function snapToEdges() {
     if (x !== b.x || y !== b.y) mainWindow.setBounds({ x, y, width: knownSize[0], height: knownSize[1] });
 }
 
+// Where a window must sit to change size without leaving the screen: an edge it was stuck to stays stuck.
+function anchoredPosition(width, height) {
+    const b = mainWindow.getBounds();
+    const wa = screen.getDisplayMatching(b).workArea;
+    const anchor = (pos, oldSize, newSize, min, span) => {
+        const end = min + span;
+        const kept = pos + oldSize >= end - RESIZE_NOISE_PX ? end - newSize : pos;
+        return Math.max(min, Math.min(kept, end - newSize));
+    };
+    return { x: anchor(b.x, b.width, width, wa.x, wa.width), y: anchor(b.y, b.height, height, wa.y, wa.height) };
+}
+
 // YouTube embeds reject file:// parents (errors 152/153) → serve dist/ over http://localhost.
 function serveDist() {
     const root = path.join(__dirname, 'dist');
@@ -254,7 +268,7 @@ function registerIpc() {
         const size = mode === 'full' && fullSize ? fullSize : m;
         mainWindow.setResizable(true); // required to apply size constraints
         mainWindow.setMinimumSize(m.minWidth, m.minHeight);
-        mainWindow.setSize(size.width, size.height);
+        mainWindow.setBounds({ ...anchoredPosition(size.width, size.height), width: size.width, height: size.height });
         mainWindow.setResizable(m.resizable);
     });
     ipcMain.handle('window:toggle-pin', () => {

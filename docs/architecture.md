@@ -24,7 +24,7 @@ Pile : Electron 39, React 19, Vite 7, Tailwind CSS 4, `lucide-react` (icônes), 
 | Responsabilité | Détail |
 |---|---|
 | Fenêtre | `BrowserWindow` sans bordure, toujours au premier plan, non maximisable, 360 × 470 au départ |
-| Modes | Table `MODES` : `full` (360 × 470, minimum 300 × 420, redimensionnable) et `mini` (340 × 84, fixe) |
+| Modes | Table `MODES` : `full` (360 × 470, minimum 300 × 420, redimensionnable), `miniVideo` (360 × 290, fixe) et `mini` (340 × 84, fixe) |
 | Chargement | En développement, l'URL fournie par `VITE_DEV_SERVER_URL`. En production, un serveur HTTP local sert `dist/` |
 | Touches multimédia | `globalShortcut` pour `MediaPlayPause`, `MediaNextTrack`, `MediaPreviousTrack` |
 | Instance unique | `requestSingleInstanceLock` ; une seconde instance ramène la fenêtre existante au premier plan |
@@ -126,7 +126,8 @@ Clés `localStorage`, préfixées par `rondo:` :
 | `queue` | Tableau de `{ id, title }` |
 | `index` | Position de la piste courante |
 | `volume` | Entier de 0 à 100 |
-| `mode` | `"full"` ou `"mini"` |
+| `mode` | `"full"`, `"miniVideo"` ou `"mini"` |
+| `miniFormat` | Dernier format mini utilisé : `"miniVideo"` (défaut) ou `"mini"` |
 
 ## Développement
 
