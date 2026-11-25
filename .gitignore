@@ -26,3 +26,6 @@ dist-ssr
 .env
 video.html
 release
+
+# personal working notes, never published
+docs/probleme-utilisations.md

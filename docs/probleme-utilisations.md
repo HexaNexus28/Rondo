@@ -1,1 +1,0 @@
--sorte de latence ou décalage dans la musique après que j'ai transporté les musics de youtube vers rondo ; pas à intervalles réguliers mais ça se faisait sentir lors de la lecture de la vidéo ; 
