@@ -27,5 +27,10 @@ dist-ssr
 video.html
 release
 
+# native helper build output
+native/media-bridge/bin
+native/media-bridge/obj
+native/media-bridge/out
+
 # personal working notes, never published
 docs/probleme-utilisations.md

@@ -10,7 +10,7 @@ const REPEAT_LABEL = { off: "Répétition : désactivée", all: "Répétition : 
 
 export default function Controls({
   player, title, status, volume, onVolume,
-  canPrev, canNext, onPrev, onNext,
+  canPrev, canNext, canSeek = true, onPrev, onNext, sourceLabel, onSwitchSource,
   shuffle, repeat, onShuffle, onRepeat, sleepMinutesLeft, onSleep,
   queueOpen, queueCount, onToggleQueue, onAdd, onPickFiles, disabled,
 }) {
@@ -27,6 +27,15 @@ export default function Controls({
   return (
     <div className="flex min-h-0 flex-1 flex-col justify-between gap-2 px-3 pb-3 pt-2">
       <div className="flex items-center gap-1">
+        {sourceLabel && (
+          <button
+            onClick={onSwitchSource}
+            className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-zinc-300 transition-colors hover:bg-violet-600"
+            title="Changer de source : Rondo ou une autre appli qui joue sur le PC"
+          >
+            {sourceLabel}
+          </button>
+        )}
         <p className="min-w-0 flex-1 truncate text-sm font-medium" title={title}>
           {title ?? "Aucune piste"}
         </p>
@@ -52,7 +61,7 @@ export default function Controls({
         <input
           type="range" min={0} max={duration || 1} step={1} value={Math.min(current, duration || 1)}
           onChange={(e) => player.seek(Number(e.target.value))}
-          disabled={disabled} aria-label="Progression"
+          disabled={disabled || !canSeek} aria-label="Progression"
           className="h-1 flex-1 accent-violet-500"
         />
         <span className="w-8">{formatTime(duration)}</span>
@@ -68,10 +77,11 @@ export default function Controls({
           <PlayButton playing={player.playing} onClick={player.toggle} disabled={disabled || !player.ready} />
           <button className={icon} onClick={onNext} disabled={!canNext} aria-label="Suivant"><SkipForward size={18} fill="currentColor" /></button>
         </div>
-        <div className="flex items-center gap-1 text-zinc-400">
+        {/* Another app's volume is its own: no slider while piloting. */}
+        <div className={`flex items-center gap-1 text-zinc-400 ${volume === null ? "invisible" : ""}`}>
           {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
           <input
-            type="range" min={0} max={100} value={volume}
+            type="range" min={0} max={100} value={volume ?? 0}
             onChange={(e) => onVolume(Number(e.target.value))}
             aria-label="Volume" className="h-1 w-14 accent-violet-500"
           />

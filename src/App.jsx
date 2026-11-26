@@ -8,12 +8,14 @@ import Settings from "./components/Settings";
 import SourceTerms from "./components/SourceTerms";
 import { useYouTubePlayer } from "./hooks/useYouTubePlayer";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
+import { useSystemMedia } from "./hooks/useSystemMedia";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { fetchTitle, parseLinks } from "./utils/youtube";
 import { fetchPlaylistVideoIds } from "./utils/playlist";
 import { initialLists, newList, nextListName } from "./utils/lists";
 import youtube from "./sources/youtube";
 import local from "./sources/local";
+import systemSource from "./sources/system";
 import { sourceOf } from "./sources";
 
 const DEFAULT_VOLUME = 70;
@@ -88,7 +90,7 @@ function App() {
 
   // Same video twice in a row doesn't change `current.id`, so reload it explicitly.
   const goTo = (i) => {
-    if (queue[i]?.id === current?.id) player.load(current);
+    if (queue[i]?.id === current?.id) rondoPlayer.load(current);
     else setIndex(i);
   };
 
@@ -116,7 +118,7 @@ function App() {
   const prev = () => {
     if (shuffle) {
       const back = shuffleHistory.current.pop();
-      if (back === undefined) player.seek(0);
+      if (back === undefined) rondoPlayer.seek(0);
       else goTo(back);
     } else if (prevPlayableBefore !== -1) goTo(prevPlayableBefore);
   };
@@ -131,7 +133,7 @@ function App() {
 
   const playerEvents = {
     initialVolume,
-    onEnded: () => (repeat === "one" && current ? player.load(current) : next(true)),
+    onEnded: () => (repeat === "one" && current ? rondoPlayer.load(current) : next(true)),
     onError: (code) => {
       const message = ERROR_MESSAGES[code] ?? `Erreur ${code}`;
       setStatus({ tone: "error", text: `${message} — piste ignorée` });
@@ -145,11 +147,48 @@ function App() {
   const youtubePlayer = useYouTubePlayer({ enabled: youtubeAccepted, ...playerEvents });
   const audioPlayer = useAudioPlayer(playerEvents);
   const isLocal = source === local;
-  const player = isLocal ? audioPlayer : youtubePlayer;
+  const rondoPlayer = isLocal ? audioPlayer : youtubePlayer;
   const { stop: stopIdle } = isLocal ? youtubePlayer : audioPlayer;
   useEffect(() => {
     stopIdle();
   }, [stopIdle]);
+
+  // Piloting: whoever starts playing takes the card, Rondo or another app, and the other side is paused.
+  const system = useSystemMedia();
+  const [piloting, setPiloting] = useState(false);
+  const externalPlaying = system.player.playing;
+  const rondoPlaying = rondoPlayer.playing;
+  const was = useRef({ external: false, rondo: false });
+  const { pause: pauseRondo } = rondoPlayer;
+  const { command: commandSystem } = system;
+  useEffect(() => {
+    const before = was.current;
+    was.current = { external: externalPlaying, rondo: rondoPlaying };
+    if (rondoPlaying && !before.rondo) {
+      setPiloting(false);
+      if (externalPlaying) commandSystem("pause");
+    } else if (externalPlaying && !before.external) {
+      setPiloting(true);
+      if (rondoPlaying) pauseRondo();
+    }
+  }, [externalPlaying, rondoPlaying, pauseRondo, commandSystem]);
+  const showSystem = piloting && system.session !== null;
+  const activeSource = showSystem ? systemSource : source;
+  const player = showSystem ? system.player : rondoPlayer;
+  // The source button cycles: Rondo → each app that plays → back to Rondo.
+  const switchSource = () => {
+    if (!showSystem) {
+      pauseRondo();
+      setPiloting(true);
+    } else if (!system.chooseNext()) setPiloting(false);
+  };
+  const shownTitle = showSystem ? [system.session.artist, system.session.title].filter(Boolean).join(" – ") : current?.title;
+  const shownCover = showSystem ? system.session.cover : isLocal ? local.thumbnail(current) : null;
+  const goNext = () => (showSystem ? commandSystem("next") : next());
+  const goPrev = () => (showSystem ? commandSystem("prev") : prev());
+  const shownCanPrev = showSystem ? system.session.canPrev : canPrev;
+  const shownCanNext = showSystem ? system.session.canNext : canNext;
+  const shownDisabled = showSystem ? !player.ready : !current;
 
   // Sleep timer: off → 15 → 30 → 60 min → off. Lives here so it keeps running in mini mode.
   const [sleep, setSleep] = useState(null); // { endsAt, step }
@@ -180,22 +219,22 @@ function App() {
   // Load whichever track is selected once the player exists.
   const loadedId = useRef(null);
   useEffect(() => {
-    if (!player.ready || !current || loadedId.current === current.id) return;
+    if (!rondoPlayer.ready || !current || loadedId.current === current.id) return;
     const firstLoad = loadedId.current === null;
     loadedId.current = current.id;
-    if (firstLoad) player.cue(current);
-    else player.load(current);
-  }, [player, current]);
+    if (firstLoad) rondoPlayer.cue(current);
+    else rondoPlayer.load(current);
+  }, [rondoPlayer, current]);
 
   useEffect(() => {
     window.widget.setMode(mode);
   }, [mode]);
 
   // The compact bar is too small for an embedded player: only sources that play elsewhere may use it.
-  const cardFormat = source.compact ? miniFormat : "miniVideo";
+  const cardFormat = activeSource.compact ? miniFormat : "miniVideo";
   useEffect(() => {
-    if (mode === "mini" && !source.compact) setMode("miniVideo");
-  }, [mode, source.compact, setMode]);
+    if (mode === "mini" && !activeSource.compact) setMode("miniVideo");
+  }, [mode, activeSource.compact, setMode]);
 
   const toCard = () => {
     setShowQueue(false);
@@ -214,11 +253,11 @@ function App() {
   const mediaHandlers = useRef({});
   mediaHandlers.current = {
     toggle: player.toggle,
-    next: () => next(),
-    prev,
+    next: goNext,
+    prev: goPrev,
     volumeUp: () => changeVolume(Math.min(100, volume + VOLUME_STEP)),
     volumeDown: () => changeVolume(Math.max(0, volume - VOLUME_STEP)),
-    hidden: () => !source.playsHidden && player.pause(),
+    hidden: () => !activeSource.playsHidden && player.pause(),
   };
   useEffect(() => window.widget.onMediaCommand((cmd) => mediaHandlers.current[cmd]?.()), []);
 
@@ -318,7 +357,7 @@ function App() {
   };
 
   const clear = () => {
-    player.stop();
+    rondoPlayer.stop();
     loadedId.current = null;
     setQueue([]);
     setIndex(0);
@@ -329,7 +368,7 @@ function App() {
     setActiveId(id);
     // An empty list has no track to load, so the previous one would keep playing.
     if (!lists.find((l) => l.id === id)?.queue.length) {
-      player.stop();
+      rondoPlayer.stop();
       loadedId.current = null;
     }
   };
@@ -387,12 +426,15 @@ function App() {
       )}
 
       <div className={`relative shrink-0 overflow-hidden bg-black ${compact ? "aspect-video h-[60px] rounded" : "aspect-video w-full"}`}>
-        {/* Hidden (never covered) while a local file plays: the YouTube player is stopped then. */}
-        <div ref={youtubePlayer.mountRef} style={NO_DRAG} className={`absolute inset-0 [&>iframe]:h-full [&>iframe]:w-full ${isLocal ? "invisible" : ""}`} />
-        {isLocal && (
-          <img key={current.id} src={local.thumbnail(current)} alt="" className="absolute inset-0 h-full w-full object-contain" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+        {/* Hidden (never covered) while a local file or another app plays: the YouTube player is paused then. */}
+        <div ref={youtubePlayer.mountRef} style={NO_DRAG} className={`absolute inset-0 [&>iframe]:h-full [&>iframe]:w-full ${isLocal || showSystem ? "invisible" : ""}`} />
+        {shownCover && (
+          <img key={shownCover.slice(0, 64)} src={shownCover} alt="" className="absolute inset-0 h-full w-full object-contain" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
         )}
-        {!current && !mini && (
+        {showSystem && !shownCover && !compact && (
+          <p className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">{systemSource.appName(system.session.id)}</p>
+        )}
+        {!current && !mini && !showSystem && (
           <p className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
             Collez un lien ci-dessous
           </p>
@@ -427,27 +469,30 @@ function App() {
       {mini ? (
         <MiniControls
           player={player}
-          title={current?.title}
-          disabled={!current}
-          canPrev={canPrev}
-          canNext={canNext}
-          onPrev={prev}
-          onNext={() => next()}
+          title={shownTitle}
+          disabled={shownDisabled}
+          canPrev={shownCanPrev}
+          canNext={shownCanNext}
+          onPrev={goPrev}
+          onNext={goNext}
           compact={compact}
-          onToggleFormat={source.compact ? toggleMiniFormat : undefined}
+          onToggleFormat={activeSource.compact ? toggleMiniFormat : undefined}
           onExpand={() => setMode("full")}
         />
       ) : (
         <Controls
           player={player}
-          title={current?.title}
+          title={shownTitle}
           status={status}
-          volume={volume}
+          volume={showSystem ? null : volume}
           onVolume={changeVolume}
-          canPrev={canPrev}
-          canNext={canNext}
-          onPrev={prev}
-          onNext={() => next()}
+          canPrev={shownCanPrev}
+          canNext={shownCanNext}
+          canSeek={!showSystem || system.session.canSeek}
+          onPrev={goPrev}
+          onNext={goNext}
+          sourceLabel={system.session ? (showSystem ? systemSource.appName(system.session.id) : "Rondo") : null}
+          onSwitchSource={switchSource}
           shuffle={shuffle}
           repeat={repeat}
           onShuffle={() => setShuffle((s) => !s)}
@@ -462,7 +507,7 @@ function App() {
           }}
           onAdd={submitInput}
           onPickFiles={pickFiles}
-          disabled={!current}
+          disabled={shownDisabled}
         />
       )}
     </div>

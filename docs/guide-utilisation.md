@@ -9,12 +9,13 @@ Ce guide décrit toutes les fonctions de Rondo du point de vue de l'utilisateur.
 3. [Ajouter de la musique](#ajouter-de-la-musique)
 4. [La file d'attente](#la-file-dattente)
 5. [Lecture et contrôles](#lecture-et-contrôles)
-6. [Mode mini](#mode-mini)
-7. [Réglages](#réglages)
-8. [Zone de notification](#zone-de-notification)
-9. [Raccourcis clavier](#raccourcis-clavier)
-10. [Données et confidentialité](#données-et-confidentialité)
-11. [Questions fréquentes](#questions-fréquentes)
+6. [Piloter une autre appli](#piloter-une-autre-appli)
+7. [Mode mini](#mode-mini)
+8. [Réglages](#réglages)
+9. [Zone de notification](#zone-de-notification)
+10. [Raccourcis clavier](#raccourcis-clavier)
+11. [Données et confidentialité](#données-et-confidentialité)
+12. [Questions fréquentes](#questions-fréquentes)
 
 ## Premiers pas
 
@@ -128,6 +129,23 @@ Sous le titre, trois petits boutons :
 
 À la fin d'une piste, la suivante démarre automatiquement. Si une vidéo n'autorise pas la lecture intégrée, un
 message s'affiche quelques secondes, la piste est marquée dans la file et l'application passe à la suivante.
+
+## Piloter une autre appli
+
+Rondo affiche et commande aussi la musique d'une autre appli : Spotify, Deezer, Apple Music, un onglet du
+navigateur… toute appli qui apparaît dans le panneau des touches multimédia de Windows.
+
+- **Bascule automatique** : quand une autre appli se met à jouer, Rondo l'affiche (titre, artiste, pochette) et ses
+  boutons la commandent : lecture/pause, précédent, suivant, et la barre de progression si l'appli le permet.
+  Dès qu'une piste de Rondo se lance, Rondo reprend la main et met l'autre appli en pause, et inversement.
+- **Bouton de source**, à gauche du titre : il indique ce qui est affiché (« Rondo » ou le nom de l'appli). Un clic
+  passe à l'appli suivante qui joue, puis revient à Rondo.
+- Le volume reste celui de l'appli pilotée : le curseur de Rondo est masqué pendant le pilotage.
+- La barre compacte est disponible, et la musique continue quand Rondo est masqué.
+
+Rondo ne choisit pas un morceau précis dans l'autre appli et n'accède à aucun compte : il fait ce que font les
+touches multimédia du clavier, avec l'affichage en plus. Ces informations viennent de Windows et ne quittent pas
+l'ordinateur.
 
 ## Mode mini
 

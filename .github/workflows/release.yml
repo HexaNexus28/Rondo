@@ -20,6 +20,11 @@ jobs:
           node-version: 22
           cache: npm
 
+      # The media helper (native/media-bridge) is C# compiled ahead of time.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
       - run: npm ci
 
       - run: npm run lint

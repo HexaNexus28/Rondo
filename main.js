@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { initUpdater, installOnOpen, installUpdate, readyVersion } from './electron/updater.js';
 import { DEFAULT_SHORTCUTS, flushSettings, getSettings, loadSettings, updateSettings } from './electron/settings.js';
 import { describeFiles, handleLocalScheme, pickFiles, registerLocalScheme } from './electron/localFiles.js';
+import { startMediaBridge } from './electron/mediaBridge.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -37,13 +38,16 @@ const MIN_VISIBLE_PX = 40;
 // At fractional DPI the window width/height wobble by a few px depending on its position.
 const RESIZE_NOISE_PX = 3;
 const OPACITY = { min: 0.2, max: 0.9 };
-// The embedded player must identify the app in the Referer header: https://<app id>, the id given to
-// Windows at install (build.appId in package.json).
-const APP_REFERER = 'https://com.hexanexus.rondo/';
+// Rondo's id for Windows (build.appId in package.json): names its media session and its notifications.
+const APP_ID = 'com.hexanexus.rondo';
+// The embedded player must identify the app in the Referer header: https://<app id>.
+const APP_REFERER = `https://${APP_ID}/`;
 const PLAYER_HOSTS = ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*'];
 
 let mainWindow = null;
 let tray = null;
+let mediaBridge = null;
+let lastSessions = { current: null, sessions: [] };
 let ghost = false;
 let currentMode = 'full';
 let knownSize = [0, 0]; // last real window size, DIP
@@ -307,11 +311,14 @@ function registerIpc() {
     ipcMain.handle('settings:set-shortcut', (_event, action, accelerator) => setShortcut(action, accelerator));
     ipcMain.handle('ghost:toggle', () => setGhost(!ghost));
     ipcMain.handle('files:pick', () => pickFiles(mainWindow));
+    ipcMain.handle('system:get', () => lastSessions);
+    ipcMain.handle('system:command', (_event, command) => mediaBridge?.send(command));
     ipcMain.handle('files:describe', (_event, paths) =>
         describeFiles(Array.isArray(paths) ? paths.filter((p) => typeof p === 'string') : []));
 }
 
 registerLocalScheme();
+app.setAppUserModelId(APP_ID);
 
 if (!app.requestSingleInstanceLock()) {
     app.quit();
@@ -324,6 +331,14 @@ if (!app.requestSingleInstanceLock()) {
         registerShortcuts();
         identifyToPlayer();
         handleLocalScheme();
+        // Other apps' playback, minus Rondo's own session.
+        mediaBridge = startMediaBridge({
+            ignoreId: APP_ID,
+            onSessions: (sessions) => {
+                lastSessions = sessions;
+                mainWindow?.webContents.send('system:sessions', sessions);
+            },
+        });
         createWindow();
         createTray();
         initUpdater({ playing: () => Boolean(mainWindow?.webContents.isCurrentlyAudible()), onReady: refreshTray });
@@ -331,6 +346,7 @@ if (!app.requestSingleInstanceLock()) {
 
     app.on('will-quit', () => {
         globalShortcut.unregisterAll();
+        mediaBridge?.stop();
         flushSettings();
     });
     app.on('window-all-closed', () => app.quit());

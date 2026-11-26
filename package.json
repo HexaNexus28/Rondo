@@ -8,13 +8,17 @@
   "license": "MIT",
   "scripts": {
     "dev": "node scripts/dev.js",
-    "build": "vite build && electron-builder",
+    "build:bridge": "node scripts/build-bridge.js",
+    "build": "npm run build:bridge && vite build && electron-builder",
     "start": "vite build && electron .",
     "lint": "eslint ."
   },
   "build": {
     "appId": "com.hexanexus.rondo",
     "productName": "Rondo",
+    "extraResources": [
+      { "from": "native/media-bridge/out/media-bridge.exe", "to": "media-bridge.exe" }
+    ],
     "files": [
       "dist/**/*",
       "main.js",

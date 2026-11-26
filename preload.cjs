@@ -13,6 +13,13 @@ contextBridge.exposeInMainWorld('widget', {
     describeFiles: (paths) => ipcRenderer.invoke('files:describe', paths),
     // Dropped files only expose their path through webUtils.
     pathForFile: (file) => webUtils.getPathForFile(file),
+    getSystemSessions: () => ipcRenderer.invoke('system:get'),
+    systemCommand: (command) => ipcRenderer.invoke('system:command', command),
+    onSystemSessions: (callback) => {
+        const listener = (_event, sessions) => callback(sessions);
+        ipcRenderer.on('system:sessions', listener);
+        return () => ipcRenderer.removeListener('system:sessions', listener);
+    },
     onMediaCommand: (callback) => {
         const listener = (_event, command) => callback(command);
         ipcRenderer.on('media:command', listener);

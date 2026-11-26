@@ -38,22 +38,27 @@
 
 ## Démarrer
 
-Prérequis : [Node.js](https://nodejs.org) 20 ou plus récent. Testé sous Windows.
+Prérequis : [Node.js](https://nodejs.org) 20 ou plus récent. Testé sous Windows. Le pilotage des autres applis
+demande aussi le [SDK .NET 10](https://dotnet.microsoft.com/download) et les outils C++ de Visual Studio
+(charge de travail « Développement Desktop en C++ ») ; sans eux, Rondo fonctionne sans pilotage.
 
 ```bash
-git clone https://github.com/HexaNexus28/music-widget.git
-cd music-widget
+git clone https://github.com/HexaNexus28/Rondo.git
+cd Rondo
 npm install
+npm run build:bridge
 npm start
 ```
 
-Copiez un lien YouTube, faites `Ctrl+V` dans la fenêtre, puis lancez la lecture.
+Collez un lien avec `Ctrl+V`, glissez un fichier audio sur la fenêtre, ou lancez votre musique dans une autre appli :
+Rondo l'affiche et la commande.
 
 | Commande | Effet |
 |---|---|
 | `npm run dev` | Développement avec rechargement à chaud |
 | `npm start` | Build puis lancement de la version de production |
-| `npm run build` | Build et installeur Windows (dossier `release/`) |
+| `npm run build:bridge` | Compile le programme de pilotage (`native/media-bridge`, C#) |
+| `npm run build` | Build et installeur Windows (dossier `release/`), programme de pilotage compris |
 | `npm run lint` | Vérification ESLint |
 
 ## Documentation

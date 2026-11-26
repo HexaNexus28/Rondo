@@ -2,5 +2,6 @@
 export const PRIVACY_POINTS = [
   "Vos listes, vos réglages et vos fichiers audio restent sur votre ordinateur : les fichiers sont lus sur place, sans être copiés ni envoyés. Rondo n’a ni compte ni serveur, et son éditeur ne reçoit aucune donnée.",
   "Quand vous lisez un lien, Rondo utilise le lecteur de la plateforme d’où il vient, qui reçoit votre adresse IP et les contenus demandés, selon ses propres règles.",
+  "Pour afficher et commander la musique d’une autre appli, Rondo lit ce que Windows sait de sa lecture (titre, artiste, pochette, état). Ces informations restent sur l’ordinateur.",
   "Pour se mettre à jour, Rondo contacte GitHub au démarrage, puis toutes les six heures.",
 ];
