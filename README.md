@@ -16,7 +16,7 @@
 ## Pourquoi Rondo
 
 - **Toujours là, jamais gênant.** Une fenêtre sans bordure qui reste au premier plan, ou une carte de
-  340 × 84 pixels qui se glisse dans un coin pendant que vous travaillez.
+  360 × 290 pixels qui se glisse dans un coin pendant que vous travaillez.
 - **Une playlist entière en un collage.** Copiez, faites `Ctrl+V` : tout est ajouté. Plusieurs liens d'un coup,
   une playlist complète, ou un simple glisser-déposer.
 - **Rien à créer, rien à configurer.** Pas de compte, pas de serveur, aucune donnée collectée. Votre file reste sur

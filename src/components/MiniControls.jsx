@@ -16,11 +16,13 @@ export default function MiniControls({ player, title, disabled, canPrev, canNext
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-xs font-medium" title={title}>{title ?? "Aucune piste"}</p>
         <div style={NO_DRAG} className="flex shrink-0 gap-0.5">
-          <button className={smallBtn} onClick={onToggleFormat} aria-label={formatLabel} title={formatLabel}>
-            {compact ? <Video size={12} /> : <RectangleHorizontal size={12} />}
-          </button>
+          {onToggleFormat && (
+            <button className={smallBtn} onClick={onToggleFormat} aria-label={formatLabel} title={formatLabel}>
+              {compact ? <Video size={12} /> : <RectangleHorizontal size={12} />}
+            </button>
+          )}
           <button className={smallBtn} onClick={onExpand} aria-label="Agrandir" title="Agrandir"><Maximize2 size={12} /></button>
-          <button className={`${smallBtn} hover:!bg-red-500/80`} onClick={() => window.widget.close()} aria-label="Fermer" title="Fermer"><X size={12} /></button>
+          <button className={`${smallBtn} hover:!bg-red-500/80`} onClick={() => window.widget.quit()} aria-label="Quitter Rondo" title="Quitter Rondo"><X size={12} /></button>
         </div>
       </div>
       <div style={NO_DRAG} className="flex items-center gap-1">

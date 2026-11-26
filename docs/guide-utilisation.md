@@ -32,11 +32,14 @@ La fenêtre n'a pas de bordure système. La barre du haut contient, de gauche à
 | Nom de l'application | Zone de déplacement : faites glisser pour déplacer la fenêtre |
 | Épingle | Active ou désactive le maintien au premier plan (activé au démarrage) |
 | Engrenage | Ouvre les [réglages](#réglages) |
-| Flèches vers l'intérieur | Passe en [mode mini](#mode-mini) |
-| Trait | Réduit la fenêtre dans la barre des tâches |
-| Croix | Masque la fenêtre dans la [zone de notification](#zone-de-notification) ; la musique continue |
+| Flèches vers l'intérieur | Réduit Rondo en carte ([mode mini](#mode-mini)) ; la musique continue |
+| Croix | Quitte Rondo |
 
-En mode complet, la fenêtre se redimensionne en tirant sur ses bords. Taille minimale : 300 × 420 pixels.
+En mode complet, la fenêtre se redimensionne en tirant sur ses bords. Taille minimale : 356 × 420 pixels, pour que
+le lecteur garde au moins 200 pixels de haut.
+
+Le lecteur reste toujours visible : la file et les réglages s'ouvrent en dessous. La lecture se met en pause si la
+fenêtre est réduite dans la barre des tâches ou masquée, car le lecteur intégré ne peut pas jouer sans être vu.
 La position et la taille sont retrouvées au prochain démarrage. Près d'un bord de l'écran (moins de 16 pixels), la
 fenêtre s'aimante au bord quand on la lâche ; l'aimantation se désactive dans les réglages.
 
@@ -77,6 +80,19 @@ zone de dépôt.
 
 Le champ en bas de la fenêtre accepte les mêmes contenus. Validez avec `Entrée` ou avec le bouton `+`.
 
+### Fichiers de l'ordinateur
+
+Rondo lit aussi la musique enregistrée sur votre PC : MP3, FLAC, M4A, AAC, OGG, Opus, WAV et WebM. Deux façons de
+l'ajouter :
+
+- le bouton dossier, à droite du `+`, ouvre la fenêtre de choix de Windows (plusieurs fichiers à la fois) ;
+- glisser-déposer des fichiers **ou un dossier entier** sur la fenêtre : tous les fichiers audio qu'il contient,
+  sous-dossiers compris, sont ajoutés par ordre alphabétique.
+
+Le titre et l'artiste viennent des informations du fichier, sinon de son nom ; la pochette intégrée s'affiche à la
+place de la vidéo. Les fichiers sont lus sur place : rien n'est copié ni envoyé. Un fichier déplacé ou supprimé après
+son ajout est marqué « Fichier introuvable » et sauté.
+
 ## La file d'attente
 
 Le bouton en bas à gauche, avec le nombre de pistes, ouvre la file en plein format.
@@ -115,21 +131,17 @@ message s'affiche quelques secondes, la piste est marquée dans la file et l'app
 
 ## Mode mini
 
-Le mode mini existe en deux formats, et Rondo retient le dernier utilisé :
+Le mode mini est une carte de 360 × 290 pixels : la vidéo (ou la pochette) reste visible, avec dessous le titre, les
+boutons « Agrandir » et « Quitter », puis précédent, lecture/pause, suivant et une fine barre de progression. La carte
+reste collée au bord où elle se trouve.
 
-- **Vidéo** (360 × 290 pixels) : la vidéo reste visible, avec les commandes dessous.
-- **Compact** (340 × 84 pixels) : une simple barre avec une vignette.
+Avec un fichier de l'ordinateur, un bouton de plus passe à la **barre compacte** (340 × 84 pixels : pochette,
+titre et commandes). Elle n'est pas proposée pour les liens YouTube, dont le lecteur doit rester d'au moins
+200 × 200 pixels ; si une piste YouTube arrive pendant que la barre compacte est affichée, Rondo revient à la carte.
+Les fichiers de l'ordinateur continuent aussi de jouer quand la fenêtre est masquée.
 
-Le petit bouton à gauche de « Agrandir » passe de l'un à l'autre. La carte reste collée au bord où elle se trouve.
-
-Le format compact contient :
-
-- vignette de la vidéo à gauche ;
-- titre, boutons « Agrandir » et « Fermer » en haut à droite ;
-- précédent, lecture/pause et suivant ;
-- fine barre de progression en bas.
-
-Toute la carte sert de zone de déplacement. Le bouton « Agrandir » revient au mode complet. La lecture n'est pas
+Le bas de la carte sert de zone de déplacement ; la vidéo, elle, reçoit les clics. Le bouton « Agrandir » revient au
+mode complet. La lecture n'est pas
 interrompue lors du changement de mode, et le mode choisi est retrouvé au prochain démarrage.
 
 ## Réglages
@@ -142,13 +154,15 @@ L'engrenage de la barre du haut ouvre les réglages :
   raccourci (`Ctrl+Alt+G` par défaut) ou le menu de l'icône de notification.
 - **Aimantation** aux bords de l'écran.
 - **Raccourcis** : voir ci-dessous.
-- **À propos** : la version installée de Rondo, tout en bas du panneau.
+- **À propos** : la version installée de Rondo.
+- **Conditions et confidentialité** : ce que Rondo transmet, et à qui. Les conditions d'une plateforme sont
+  demandées une seule fois, au premier lien de cette plateforme ; son lecteur n'est pas chargé avant.
 
 ## Zone de notification
 
-Rondo place une icône dans la zone de notification de Windows. Un clic la masque ou l'affiche ; le clic droit ouvre
-un menu : lecture/pause, suivant, précédent, afficher/masquer, mode fantôme et **Quitter**. Pour fermer vraiment
-l'application, utilisez ce menu : la croix de la fenêtre ne fait que la masquer.
+Rondo place une icône dans la zone de notification de Windows. Un clic la masque (la lecture se met alors en pause)
+ou l'affiche ; le clic droit ouvre un menu : lecture/pause, suivant, précédent, afficher/masquer, mode fantôme et
+**Quitter**.
 
 ### Mises à jour
 
@@ -199,22 +213,22 @@ appareil :
 La file et les choix d'affichage sont stockés dans le stockage local de l'application (`localStorage`), les autres
 réglages dans `settings.json`, tous deux dans le dossier de données de l'application. Pour tout effacer, videz la
 file et supprimez ce dossier (`%APPDATA%\Rondo`). Après un arrêt brutal du processus (« Terminer la tâche »), les
-modifications des 30 dernières secondes peuvent être perdues ; une fermeture par le menu Quitter les conserve.
+modifications des 30 dernières secondes peuvent être perdues ; une fermeture par la croix ou le menu Quitter les conserve.
 
-La lecture passe par le lecteur intégré de YouTube. Les conditions d'utilisation de YouTube s'appliquent à ce
-lecteur, y compris les publicités qu'il peut afficher.
+La lecture passe par le lecteur officiel de la plateforme d'où vient le lien (aujourd'hui YouTube), dont les
+conditions d'utilisation s'appliquent.
 
 ## Questions fréquentes
 
 **Une vidéo est sautée automatiquement.**
-Son auteur interdit la lecture hors de YouTube. Il n'existe pas de contournement.
+Son auteur interdit la lecture hors de sa plateforme. Il n'existe pas de contournement.
 
 **L'import d'une playlist échoue.**
 Vérifiez qu'elle est publique ou non répertoriée, qu'elle n'est pas un mix (`list=RD…`) et qu'elle n'est pas vide.
 L'import s'interrompt après 10 secondes sans réponse.
 
 **Rien ne se passe quand je colle.**
-Le texte collé ne contient aucun lien YouTube reconnu. Un message d'erreur apparaît s'il vient du champ de saisie.
+Le texte collé ne contient aucun lien reconnu. Un message d'erreur apparaît s'il vient du champ de saisie.
 
 **La fenêtre a disparu.**
 Elle est peut-être masquée dans la zone de notification (clic sur l'icône pour l'afficher) ou réduite dans la barre

@@ -5,22 +5,30 @@ import Queue from "./components/Queue";
 import Controls from "./components/Controls";
 import MiniControls from "./components/MiniControls";
 import Settings from "./components/Settings";
+import SourceTerms from "./components/SourceTerms";
 import { useYouTubePlayer } from "./hooks/useYouTubePlayer";
+import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { fetchTitle, parseLinks } from "./utils/youtube";
 import { fetchPlaylistVideoIds } from "./utils/playlist";
 import { initialLists, newList, nextListName } from "./utils/lists";
+import youtube from "./sources/youtube";
+import local from "./sources/local";
+import { sourceOf } from "./sources";
 
 const DEFAULT_VOLUME = 70;
 const VOLUME_STEP = 5;
 const STATUS_VISIBLE_MS = 4000;
 // Errors that will never go away for this video (unlike 2/5, which are transient).
-const PERMANENT_ERRORS = new Set([100, 101, 150, 153]);
+const PERMANENT_ERRORS = new Set([100, 101, 150, 153, "missing"]);
 const SLEEP_STEPS_MIN = [15, 30, 60];
 const MS_PER_MIN = 60_000;
 const SLEEP_TICK_MS = 1000;
 const DRAG = { WebkitAppRegion: "drag" };
+// The player takes clicks, so it must not be part of the window's drag area.
+const NO_DRAG = { WebkitAppRegion: "no-drag" };
 const ERROR_MESSAGES = {
+  missing: "Fichier introuvable",
   2: "Lien invalide",
   5: "Erreur du lecteur",
   100: "Vidéo introuvable",
@@ -60,6 +68,7 @@ function App() {
   const mini = mode !== "full";
   const compact = mode === "mini";
   const current = queue[index];
+  const source = sourceOf(current);
   // Tracks YouTube refused to play are skipped everywhere (see onError below).
   const anyPlayable = queue.some((t) => !t.unplayable);
   const nextPlayableAfter = queue.findIndex((t, i) => i > index && !t.unplayable);
@@ -79,7 +88,7 @@ function App() {
 
   // Same video twice in a row doesn't change `current.id`, so reload it explicitly.
   const goTo = (i) => {
-    if (queue[i]?.id === current?.id) player.load(current.id);
+    if (queue[i]?.id === current?.id) player.load(current);
     else setIndex(i);
   };
 
@@ -114,9 +123,15 @@ function App() {
 
   const cycleRepeat = () => setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off"));
 
-  const player = useYouTubePlayer({
+  // A source's player is only used once its terms are accepted; links pasted before wait in `pendingText`.
+  const [acceptedTerms, setAcceptedTerms] = usePersistedState("acceptedTerms", {});
+  const [pendingText, setPendingText] = useState(null);
+  const youtubeAccepted = acceptedTerms[youtube.id] === youtube.terms.version;
+  const askTerms = !youtubeAccepted && (pendingText !== null || queue.some((t) => sourceOf(t) === youtube));
+
+  const playerEvents = {
     initialVolume,
-    onEnded: () => (repeat === "one" && current ? player.load(current.id) : next(true)),
+    onEnded: () => (repeat === "one" && current ? player.load(current) : next(true)),
     onError: (code) => {
       const message = ERROR_MESSAGES[code] ?? `Erreur ${code}`;
       setStatus({ tone: "error", text: `${message} — piste ignorée` });
@@ -125,7 +140,16 @@ function App() {
       }
       next(true);
     },
-  });
+  };
+  // Each source has its own player: the one for the current track plays, the other stays silent.
+  const youtubePlayer = useYouTubePlayer({ enabled: youtubeAccepted, ...playerEvents });
+  const audioPlayer = useAudioPlayer(playerEvents);
+  const isLocal = source === local;
+  const player = isLocal ? audioPlayer : youtubePlayer;
+  const { stop: stopIdle } = isLocal ? youtubePlayer : audioPlayer;
+  useEffect(() => {
+    stopIdle();
+  }, [stopIdle]);
 
   // Sleep timer: off → 15 → 30 → 60 min → off. Lives here so it keeps running in mini mode.
   const [sleep, setSleep] = useState(null); // { endsAt, step }
@@ -159,13 +183,25 @@ function App() {
     if (!player.ready || !current || loadedId.current === current.id) return;
     const firstLoad = loadedId.current === null;
     loadedId.current = current.id;
-    if (firstLoad) player.cue(current.id);
-    else player.load(current.id);
+    if (firstLoad) player.cue(current);
+    else player.load(current);
   }, [player, current]);
 
   useEffect(() => {
     window.widget.setMode(mode);
   }, [mode]);
+
+  // The compact bar is too small for an embedded player: only sources that play elsewhere may use it.
+  const cardFormat = source.compact ? miniFormat : "miniVideo";
+  useEffect(() => {
+    if (mode === "mini" && !source.compact) setMode("miniVideo");
+  }, [mode, source.compact, setMode]);
+
+  const toCard = () => {
+    setShowQueue(false);
+    setShowSettings(false);
+    setMode(cardFormat);
+  };
 
   // Messages fade on their own; "in progress" stays until replaced by the outcome.
   useEffect(() => {
@@ -182,14 +218,19 @@ function App() {
     prev,
     volumeUp: () => changeVolume(Math.min(100, volume + VOLUME_STEP)),
     volumeDown: () => changeVolume(Math.max(0, volume - VOLUME_STEP)),
+    hidden: () => !source.playsHidden && player.pause(),
   };
   useEffect(() => window.widget.onMediaCommand((cmd) => mediaHandlers.current[cmd]?.()), []);
 
   // Accepts anything: one link, many links, a playlist URL. Returns true if it understood the text.
   const addFromText = useCallback(
-    async (text) => {
+    async (text, termsAccepted = youtubeAccepted) => {
       const { videoIds, playlistIds } = parseLinks(text);
       if (!videoIds.length && !playlistIds.length) return false;
+      if (!termsAccepted) {
+        setPendingText(text);
+        return true;
+      }
       setStatus({ tone: "info", text: "Ajout en cours…" });
       try {
         const fromPlaylists = (await Promise.all(playlistIds.map(fetchPlaylistVideoIds))).flat();
@@ -202,11 +243,32 @@ function App() {
       }
       return true;
     },
-    [setQueue],
+    [setQueue, youtubeAccepted],
   );
 
+  const acceptTerms = () => {
+    setAcceptedTerms((t) => ({ ...t, [youtube.id]: youtube.terms.version }));
+    if (pendingText !== null) addFromText(pendingText, true);
+    setPendingText(null);
+  };
+
+  // The terms need room under the player: a link dropped on the card brings the full window back.
+  useEffect(() => {
+    if (askTerms && mode !== "full") setMode("full");
+  }, [askTerms, mode, setMode]);
+
+  const addTracks = useCallback(
+    (tracks) => {
+      if (!tracks.length) return setStatus({ tone: "error", text: "Aucun fichier audio reconnu" });
+      setQueue((q) => [...q, ...tracks]);
+      setStatus({ tone: "ok", text: `${tracks.length} piste${tracks.length > 1 ? "s" : ""} ajoutée${tracks.length > 1 ? "s" : ""}` });
+    },
+    [setQueue],
+  );
+  const pickFiles = async () => addTracks(await window.widget.pickFiles());
+
   const submitInput = async (text) => {
-    if (!(await addFromText(text))) setStatus({ tone: "error", text: "Aucun lien YouTube reconnu" });
+    if (!(await addFromText(text))) setStatus({ tone: "error", text: "Aucun lien reconnu" });
   };
 
   // Ctrl+V anywhere in the widget, or a link dropped on it, is enough to add tracks.
@@ -225,9 +287,11 @@ function App() {
     const onDragLeave = (e) => {
       if (!e.relatedTarget) setDragging(false);
     };
-    const onDrop = (e) => {
+    const onDrop = async (e) => {
       e.preventDefault();
       setDragging(false);
+      const paths = [...e.dataTransfer.files].map((f) => window.widget.pathForFile(f)).filter(Boolean);
+      if (paths.length) return addTracks(await window.widget.describeFiles(paths));
       const text = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
       addFromText(text);
     };
@@ -241,7 +305,7 @@ function App() {
       window.removeEventListener("dragleave", onDragLeave);
       window.removeEventListener("drop", onDrop);
     };
-  }, [addFromText]);
+  }, [addFromText, addTracks]);
 
   // First track added to an empty queue becomes the current one.
   useEffect(() => {
@@ -289,7 +353,8 @@ function App() {
 
   const changeVolume = (v) => {
     setVolume(v);
-    player.setVolume(v);
+    youtubePlayer.setVolume(v);
+    audioPlayer.setVolume(v);
   };
 
   const toggleMiniFormat = () => {
@@ -304,14 +369,15 @@ function App() {
       style={mini ? DRAG : undefined}
       className={`relative flex h-screen bg-[#0f0f14] text-zinc-100 select-none ${compact ? "items-center gap-3 p-3" : "flex-col"}`}
     >
-      {dragging && (
-        <div className="pointer-events-none absolute inset-2 z-10 grid place-items-center rounded-xl border-2 border-dashed border-violet-400 bg-violet-500/20 text-sm font-medium text-violet-200">
-          Déposer le lien ici
+      {/* Kept below the player: nothing may be drawn over it. */}
+      {dragging && !mini && (
+        <div className="pointer-events-none absolute inset-x-2 bottom-2 top-[calc(2rem+56.25vw)] z-10 grid place-items-center rounded-xl border-2 border-dashed border-violet-400 bg-violet-500/20 text-sm font-medium text-violet-200">
+          Déposer les liens ou les fichiers ici
         </div>
       )}
       {!mini && (
         <TitleBar
-          onMini={() => setMode(miniFormat)}
+          onCard={toCard}
           settingsOpen={showSettings}
           onSettings={() => {
             setShowQueue(false);
@@ -321,10 +387,14 @@ function App() {
       )}
 
       <div className={`relative shrink-0 overflow-hidden bg-black ${compact ? "aspect-video h-[60px] rounded" : "aspect-video w-full"}`}>
-        <div ref={player.mountRef} className="absolute inset-0 pointer-events-none [&>iframe]:h-full [&>iframe]:w-full" />
+        {/* Hidden (never covered) while a local file plays: the YouTube player is stopped then. */}
+        <div ref={youtubePlayer.mountRef} style={NO_DRAG} className={`absolute inset-0 [&>iframe]:h-full [&>iframe]:w-full ${isLocal ? "invisible" : ""}`} />
+        {isLocal && (
+          <img key={current.id} src={local.thumbnail(current)} alt="" className="absolute inset-0 h-full w-full object-contain" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+        )}
         {!current && !mini && (
           <p className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
-            Collez un lien YouTube ci-dessous
+            Collez un lien ci-dessous
           </p>
         )}
       </div>
@@ -348,6 +418,8 @@ function App() {
         )}
       </AnimatePresence>
 
+      {askTerms && !mini && <SourceTerms source={youtube} onAccept={acceptTerms} onCancel={pendingText !== null && !queue.length ? () => setPendingText(null) : undefined} />}
+
       <AnimatePresence>
         {showSettings && !mini && <Settings accent={accent} onAccent={setAccent} onClose={() => setShowSettings(false)} />}
       </AnimatePresence>
@@ -362,7 +434,7 @@ function App() {
           onPrev={prev}
           onNext={() => next()}
           compact={compact}
-          onToggleFormat={toggleMiniFormat}
+          onToggleFormat={source.compact ? toggleMiniFormat : undefined}
           onExpand={() => setMode("full")}
         />
       ) : (
@@ -389,6 +461,7 @@ function App() {
             setShowQueue((s) => !s);
           }}
           onAdd={submitInput}
+          onPickFiles={pickFiles}
           disabled={!current}
         />
       )}

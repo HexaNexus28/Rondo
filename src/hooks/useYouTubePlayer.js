@@ -7,8 +7,9 @@ const STATE = { ENDED: 0, PLAYING: 1, PAUSED: 2 };
 /**
  * Wraps the YouTube IFrame API. `onEnded` / `onError` are read through refs,
  * so callers can pass fresh closures without recreating the player.
+ * Nothing is loaded from YouTube until `enabled` (the user accepted its terms).
  */
-export function useYouTubePlayer({ onEnded, onError, initialVolume }) {
+export function useYouTubePlayer({ enabled, onEnded, onError, initialVolume }) {
   const mountRef = useRef(null);
   const playerRef = useRef(null);
   const callbacks = useRef({ onEnded, onError });
@@ -19,6 +20,7 @@ export function useYouTubePlayer({ onEnded, onError, initialVolume }) {
   const [time, setTime] = useState({ current: 0, duration: 0 });
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
     // YT replaces the target node with an iframe, so give it a disposable child.
     const target = document.createElement("div");
@@ -52,7 +54,7 @@ export function useYouTubePlayer({ onEnded, onError, initialVolume }) {
       target.remove();
       setReady(false);
     };
-  }, [initialVolume]);
+  }, [enabled, initialVolume]);
 
   useEffect(() => {
     if (!ready) return;
@@ -63,8 +65,8 @@ export function useYouTubePlayer({ onEnded, onError, initialVolume }) {
     return () => clearInterval(id);
   }, [ready]);
 
-  const load = useCallback((videoId) => playerRef.current?.loadVideoById(videoId), []);
-  const cue = useCallback((videoId) => playerRef.current?.cueVideoById(videoId), []);
+  const load = useCallback((track) => playerRef.current?.loadVideoById(track.id), []);
+  const cue = useCallback((track) => playerRef.current?.cueVideoById(track.id), []);
   const toggle = useCallback(() => {
     const p = playerRef.current;
     if (!p) return;

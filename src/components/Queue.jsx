@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { X, AudioLines, Search, Trash2, TriangleAlert } from "lucide-react";
-import { thumbnailUrl } from "../utils/youtube";
+import { sourceOf } from "../sources";
 import ListTabs from "./ListTabs";
 
 const normalize = (s) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -27,7 +27,7 @@ export default function Queue({ queue, index, lists, onSelect, onRemove, onClear
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 12 }}
       transition={{ duration: 0.18 }}
-      className="absolute inset-x-0 bottom-0 top-8 z-20 flex flex-col bg-[#0f0f14]"
+      className="absolute inset-x-0 bottom-0 top-[calc(2rem+56.25vw)] z-20 flex flex-col bg-[#0f0f14]"
     >
       <ListTabs {...lists} />
       <div className="flex items-center gap-1 px-2 pb-2">
@@ -65,7 +65,7 @@ export default function Queue({ queue, index, lists, onSelect, onRemove, onClear
             className={`group flex items-center gap-2 rounded p-1 ${i === index ? "bg-violet-500/20" : "hover:bg-white/5"}`}
           >
             <button className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => onSelect(i)} title={item.unplayable ? `${item.unplayable} — cliquer pour réessayer` : undefined}>
-              <img src={thumbnailUrl(item.id)} alt="" loading="lazy" className={`h-9 w-16 shrink-0 rounded object-cover ${item.unplayable ? "opacity-30 grayscale" : ""}`} />
+              <img src={sourceOf(item).thumbnail(item)} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.visibility = "hidden")} className={`h-9 w-16 shrink-0 rounded object-cover ${item.unplayable ? "opacity-30 grayscale" : ""}`} />
               <span className={`truncate text-xs ${item.unplayable ? "text-zinc-500 line-through" : ""}`}>{item.title}</span>
               {item.unplayable && <TriangleAlert size={14} className="shrink-0 text-amber-400" aria-label={item.unplayable} />}
               {i === index && <AudioLines size={14} className="shrink-0 text-violet-400" />}

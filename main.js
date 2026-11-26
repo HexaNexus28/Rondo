@@ -1,5 +1,5 @@
 // main.js
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, screen, Tray } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, screen, session, shell, Tray } from 'electron';
 import * as path from 'path';
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -7,6 +7,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'url';
 import { initUpdater, installOnOpen, installUpdate, readyVersion } from './electron/updater.js';
 import { DEFAULT_SHORTCUTS, flushSettings, getSettings, loadSettings, updateSettings } from './electron/settings.js';
+import { describeFiles, handleLocalScheme, pickFiles, registerLocalScheme } from './electron/localFiles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,7 +19,8 @@ const MIME = {
     '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon',
 };
 const MODES = {
-    full: { width: 360, height: 470, minWidth: 300, minHeight: 420, resizable: true },
+    // 356 px wide is the narrowest window whose 16:9 player stays 200 px tall, the embedded player's minimum.
+    full: { width: 360, height: 470, minWidth: 356, minHeight: 420, resizable: true },
     // Video card: 360 px wide keeps the 16:9 player above YouTube's 200 px minimum height.
     miniVideo: { width: 360, height: 290, minWidth: 0, minHeight: 0, resizable: false },
     mini: { width: 340, height: 84, minWidth: 0, minHeight: 0, resizable: false },
@@ -35,11 +37,14 @@ const MIN_VISIBLE_PX = 40;
 // At fractional DPI the window width/height wobble by a few px depending on its position.
 const RESIZE_NOISE_PX = 3;
 const OPACITY = { min: 0.2, max: 0.9 };
+// The embedded player must identify the app in the Referer header: https://<app id>, the id given to
+// Windows at install (build.appId in package.json).
+const APP_REFERER = 'https://com.hexanexus.rondo/';
+const PLAYER_HOSTS = ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*'];
 
 let mainWindow = null;
 let tray = null;
 let ghost = false;
-let quitting = false;
 let currentMode = 'full';
 let knownSize = [0, 0]; // last real window size, DIP
 const bound = {}; // action → accelerator currently registered
@@ -79,7 +84,7 @@ async function createWindow() {
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: false,
-            backgroundThrottling: false, // keep playback/progress alive when hidden or minimized
+            backgroundThrottling: false, // keep progress and timers exact while other windows cover Rondo
             preload: path.join(__dirname, 'preload.cjs'),
         },
     });
@@ -110,11 +115,13 @@ async function createWindow() {
     mainWindow.on('move', settle);
     mainWindow.on('show', refreshTray);
     mainWindow.on('hide', refreshTray);
-    // The X button hides to the tray; only the tray menu really quits.
-    mainWindow.on('close', (event) => {
-        if (quitting) return;
-        event.preventDefault();
-        mainWindow.hide();
+    // The embedded player may not play while nobody can see it.
+    mainWindow.on('hide', () => sendCommand('hidden'));
+    mainWindow.on('minimize', () => sendCommand('hidden'));
+    // Links (terms, privacy, the player's own links) open in the browser, never in a Rondo window.
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        if (url.startsWith('https://')) shell.openExternal(url);
+        return { action: 'deny' };
     });
     mainWindow.on('closed', () => (mainWindow = null));
 
@@ -178,9 +185,18 @@ function serveDist() {
     });
 }
 
+function sendCommand(command) {
+    mainWindow?.webContents.send('media:command', command);
+}
+
 function runAction(action) {
     if (action === 'ghost') setGhost(!ghost);
-    else mainWindow?.webContents.send('media:command', action);
+    else sendCommand(action);
+}
+
+function identifyToPlayer() {
+    session.defaultSession.webRequest.onBeforeSendHeaders({ urls: PLAYER_HOSTS }, ({ requestHeaders }, callback) =>
+        callback({ requestHeaders: { ...requestHeaders, Referer: APP_REFERER } }));
 }
 
 function setGhost(on) {
@@ -260,8 +276,7 @@ const readSettings = () => {
 };
 
 function registerIpc() {
-    ipcMain.handle('window:minimize', () => mainWindow?.minimize());
-    ipcMain.handle('window:close', () => mainWindow?.hide());
+    ipcMain.handle('app:quit', () => app.quit());
     ipcMain.handle('window:set-mode', (_event, mode) => {
         const m = MODES[mode];
         if (!m || !mainWindow) return;
@@ -291,7 +306,12 @@ function registerIpc() {
     });
     ipcMain.handle('settings:set-shortcut', (_event, action, accelerator) => setShortcut(action, accelerator));
     ipcMain.handle('ghost:toggle', () => setGhost(!ghost));
+    ipcMain.handle('files:pick', () => pickFiles(mainWindow));
+    ipcMain.handle('files:describe', (_event, paths) =>
+        describeFiles(Array.isArray(paths) ? paths.filter((p) => typeof p === 'string') : []));
 }
+
+registerLocalScheme();
 
 if (!app.requestSingleInstanceLock()) {
     app.quit();
@@ -302,12 +322,13 @@ if (!app.requestSingleInstanceLock()) {
         loadSettings();
         registerIpc();
         registerShortcuts();
+        identifyToPlayer();
+        handleLocalScheme();
         createWindow();
         createTray();
         initUpdater({ playing: () => Boolean(mainWindow?.webContents.isCurrentlyAudible()), onReady: refreshTray });
     });
 
-    app.on('before-quit', () => (quitting = true));
     app.on('will-quit', () => {
         globalShortcut.unregisterAll();
         flushSettings();

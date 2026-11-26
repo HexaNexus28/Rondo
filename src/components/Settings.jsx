@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { X, Ghost } from "lucide-react";
 import { acceleratorFromEvent } from "../utils/accelerator";
+import PrivacyNotice from "./PrivacyNotice";
 
 const ACCENTS = {
   violet: "#8b5cf6",
@@ -73,7 +74,7 @@ export default function Settings({ accent, onAccent, onClose }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 12 }}
       transition={{ duration: 0.18 }}
-      className="absolute inset-x-0 bottom-0 top-8 z-20 flex flex-col overflow-y-auto bg-[#0f0f14]"
+      className="absolute inset-x-0 bottom-0 top-[calc(2rem+56.25vw)] z-20 flex flex-col overflow-y-auto bg-[#0f0f14]"
     >
       <div className="flex items-center justify-between px-3 pb-1">
         <h2 className="text-sm font-medium">Réglages</h2>
@@ -141,6 +142,11 @@ export default function Settings({ accent, onAccent, onClose }) {
             <p className="flex items-center justify-between text-xs text-zinc-300">
               Version <span className="tabular-nums text-zinc-200">{settings.version}</span>
             </p>
+          </div>
+
+          <div className={section}>
+            <h3 className={heading}>Conditions et confidentialité</h3>
+            <PrivacyNotice />
           </div>
         </>
       )}

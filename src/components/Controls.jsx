@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SkipBack, SkipForward, ListMusic, Volume2, VolumeX, Plus, Shuffle, Repeat, Repeat1, Moon } from "lucide-react";
+import { SkipBack, SkipForward, ListMusic, Volume2, VolumeX, Plus, Shuffle, Repeat, Repeat1, Moon, FolderOpen } from "lucide-react";
 import PlayButton from "./PlayButton";
 import { formatTime } from "../utils/youtube";
 
@@ -12,7 +12,7 @@ export default function Controls({
   player, title, status, volume, onVolume,
   canPrev, canNext, onPrev, onNext,
   shuffle, repeat, onShuffle, onRepeat, sleepMinutesLeft, onSleep,
-  queueOpen, queueCount, onToggleQueue, onAdd, disabled,
+  queueOpen, queueCount, onToggleQueue, onAdd, onPickFiles, disabled,
 }) {
   const [input, setInput] = useState("");
   const { current, duration } = player.time;
@@ -85,6 +85,7 @@ export default function Controls({
           className="min-w-0 flex-1 select-text rounded bg-white/5 px-2 py-1.5 text-xs placeholder-zinc-500 outline-none focus:ring-1 focus:ring-violet-500"
         />
         <button type="submit" className="grid w-9 place-items-center rounded bg-white/10 transition-colors hover:bg-violet-600" aria-label="Ajouter" title="Ajouter à la file"><Plus size={16} /></button>
+        <button type="button" onClick={onPickFiles} className="grid w-9 place-items-center rounded bg-white/10 transition-colors hover:bg-violet-600" aria-label="Ajouter des fichiers audio" title="Ajouter des fichiers audio de l’ordinateur"><FolderOpen size={16} /></button>
       </form>
       {status && <p className={`-mt-1 text-[11px] ${STATUS_TONE[status.tone]}`}>{status.text}</p>}
     </div>
