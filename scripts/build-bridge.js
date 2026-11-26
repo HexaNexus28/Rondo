@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 
-const VS_INSTALLER = path.join(process.env['ProgramFiles(x86)'] ?? 'C:\Program Files (x86)', 'Microsoft Visual Studio', 'Installer');
+const VS_INSTALLER = path.join(process.env['ProgramFiles(x86)'] ?? 'C:/Program Files (x86)', 'Microsoft Visual Studio', 'Installer');
 
 execFileSync('dotnet', ['publish', 'native/media-bridge', '-c', 'Release', '-o', 'native/media-bridge/out'], {
     stdio: 'inherit',
